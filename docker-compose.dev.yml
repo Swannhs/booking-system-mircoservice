@@ -1,0 +1,88 @@
+services:
+  # PostgreSQL database for booking-api
+  booking-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: booking_db
+      POSTGRES_USER: booking_user
+      POSTGRES_PASSWORD: booking_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - booking_db_data:/var/lib/postgresql/data
+
+  # Booking API (Spring Boot) - Development mode
+  booking-api:
+    build:
+      context: ./booking-api
+      dockerfile: docker/development/Dockerfile
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://booking-db:5432/booking_db
+      SPRING_DATASOURCE_USERNAME: booking_user
+      SPRING_DATASOURCE_PASSWORD: booking_password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_DEVTOOLS_RESTART_ENABLED: true
+    depends_on:
+      - booking-db
+    volumes:
+      - ./booking-api/src:/app/src
+      - ./booking-api/pom.xml:/app/pom.xml
+
+  # MySQL database for payment-api
+  payment-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: payment_db
+      MYSQL_USER: payment_user
+      MYSQL_PASSWORD: payment_password
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - payment_db_data:/var/lib/mysql
+
+  # Payment API (Laravel) - Development mode
+  payment-api:
+    build:
+      context: ./payment-api
+      dockerfile: payment-api/docker/local/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: payment-db
+      DB_PORT: 3306
+      DB_DATABASE: payment_db
+      DB_USERNAME: payment_user
+      DB_PASSWORD: payment_password
+      APP_KEY: base64:your-app-key-here
+      APP_ENV: local
+      APP_DEBUG: true
+    depends_on:
+      - payment-db
+    volumes:
+      - ./payment-api:/app
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+  # User API (NestJS) - Development mode
+  user-api:
+    build:
+      context: ./user-api
+      dockerfile: user-api/docker/local/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./user-api/src:/app/src
+      - ./user-api/package.json:/app/package.json
+      - ./user-api/package-lock.json:/app/package-lock.json
+      - /app/node_modules
+    command: npm run start:dev
+
+volumes:
+  booking_db_data:
+  payment_db_data:
