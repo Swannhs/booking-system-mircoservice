@@ -2,6 +2,7 @@ package com.bookingapi.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "bookings", indexes = {
     @Index(name = "idx_bookings_user_id", columnList = "user_id"),
     @Index(name = "idx_bookings_item_id", columnList = "item_id"),

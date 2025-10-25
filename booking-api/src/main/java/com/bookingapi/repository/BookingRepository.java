@@ -38,4 +38,15 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
            "b.status NOT IN ('CANCELLED', 'COMPLETED')")
     List<Booking> findOverlappingBookings(@Param("startDate") LocalDateTime startDate,
                                         @Param("endDate") LocalDateTime endDate);
+
+    List<Booking> findByUserId(UUID id);
+
+    List<Booking> findByItemId(UUID id);
+
+    @Query("SELECT b FROM Booking b WHERE b.item.id = :itemId AND " +
+           "(b.startDate <= :endDate AND b.endDate >= :startDate) AND " +
+           "b.status NOT IN ('CANCELLED', 'COMPLETED')")
+    List<Booking> findConflictingBookings(@Param("itemId") UUID itemId,
+                                        @Param("startDate") LocalDateTime startDate,
+                                        @Param("endDate") LocalDateTime endDate);
 }
